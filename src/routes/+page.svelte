@@ -7,8 +7,8 @@
 	import Analyzer from '../lib/Analyzer.svelte';
 	import { loaded, results } from '../lib/store.js';
 	import { quadInOut } from 'svelte/easing';
-	import ExpandLess from '../static/expand_less_FILL0_wght400_GRAD0_opsz24.svg';
-	import ExpandMore from '../static/expand_more_FILL0_wght400_GRAD0_opsz24.svg';
+	import ExpandLess from '../expand_less_FILL0_wght400_GRAD0_opsz24.svg';
+	import ExpandMore from '../expand_more_FILL0_wght400_GRAD0_opsz24.svg';
 
 	let worker;
 	let audioPlayer;
@@ -102,7 +102,7 @@
 	}
 
 	onMount(async () => {
-		worker = new Worker('/src/audioProcessor.worker.js');
+		worker = new Worker('/audioProcessor.worker.js');
 		loaded.set(true);
 		audioPlayer = document.getElementById('audioPlayer');
 	});
