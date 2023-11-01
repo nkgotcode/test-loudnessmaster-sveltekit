@@ -1,11 +1,11 @@
 <!-- App.svelte -->
 <script>
 	import { onDestroy, onMount, tick } from 'svelte';
-	import Result from '$lib/Result.svelte';
+	import Result from '../lib/Result.svelte';
 	import { flip } from 'svelte/animate';
-	import NavBar from '$lib/NavBar.svelte';
-	import Analyzer from '$lib/Analyzer.svelte';
-	import { loaded, results } from '$lib/store.js';
+	import NavBar from '../lib/NavBar.svelte';
+	import Analyzer from '../lib/Analyzer.svelte';
+	import { loaded, results } from '../lib/store.js';
 	import { quadInOut } from 'svelte/easing';
 	import ExpandLess from '../static/expand_less_FILL0_wght400_GRAD0_opsz24.svg';
 	import ExpandMore from '../static/expand_more_FILL0_wght400_GRAD0_opsz24.svg';
