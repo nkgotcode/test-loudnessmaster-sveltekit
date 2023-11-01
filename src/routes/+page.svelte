@@ -102,7 +102,7 @@
 	}
 
 	onMount(async () => {
-		worker = new Worker('src/static/audioProcessor.worker.js');
+		worker = new Worker('/src/audioProcessor.worker.js');
 		loaded.set(true);
 		audioPlayer = document.getElementById('audioPlayer');
 	});
