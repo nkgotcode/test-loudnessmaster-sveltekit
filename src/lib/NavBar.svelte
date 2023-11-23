@@ -1,8 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
-
+	import Switch from './Switch.svelte';
+	import { fade, fly } from 'svelte/transition';
+	import { quadIn, quadOut, sineInOut } from 'svelte/easing';
+	import { processingType } from './store';
 	let lastScrollTop = 0;
 	let navBar;
+	let multiValue = 'Offline';
+
+	$: if (multiValue === 'Online') {
+		processingType.set('Online');
+	} else {
+		processingType.set('Offline');
+	}
 
 	onMount(() => {
 		window.addEventListener('scroll', function () {
@@ -20,7 +30,36 @@
 </script>
 
 <div bind:this={navBar} class="navBar">
-	<h1>LoudnessMaster</h1>
+	{#if multiValue == 'Online'}
+		<h1>
+			LoudnessMaster
+			<span
+				class="live-text"
+				in:fly={{ x: 20, duration: 400, easing: sineInOut, opacity: 0.5 }}
+				out:fly={{ x: -20, duration: 200, easing: quadIn, opacity: 0.5 }}>live</span
+			>
+		</h1>
+	{:else}
+		<h1
+			in:fly={{ x: 20, duration: 400, easing: sineInOut, opacity: 0.5 }}
+			out:fly={{ x: -20, duration: 200, easing: quadIn, opacity: 0.5 }}
+		>
+			LoudnessMaster
+		</h1>
+	{/if}
+	<div class="switch">
+		<Switch
+			bind:value={multiValue}
+			label="Processing"
+			design="multi"
+			options={['Offline', 'Online']}
+			fontSize={12}
+		/>
+		{$processingType}
+		<!-- <p>
+			{multiValue}
+		</p> -->
+	</div>
 </div>
 
 <style>
@@ -45,5 +84,14 @@
 		color: #fefefe;
 		font-weight: normal;
 		font-size: 3.5vw;
+	}
+	.switch {
+		color: #fefefe;
+		position: fixed;
+		right: 0;
+	}
+	.live-text {
+		font-size: 1rem; /* Adjust font size as needed */
+		color: #d53131; /* Optional: different color for visibility */
 	}
 </style>

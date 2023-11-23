@@ -68,21 +68,9 @@
 		handleScrollToBottom();
 	}
 
-	// function scrollToBottom() {
-	// 	const scrollHeight = document.documentElement.scrollHeight;
-	// 	const position = scrollHeight - window.innerHeight;
-	// 	window.scrollTo({ top: position, behavior: 'smooth' });
-	// }
-	// function handleScrollToTop() {
-	// 	window.scrollTo({
-	// 		top: 0,
-	// 		behavior: 'smooth'
-	// 	});
-	// }
-
 	function handleScrollToTop() {
 		const container = document.querySelector('.analyzers-container');
-		container.scrollTop = 0; // Scrolls to the top
+		container.scrollTop = 0;
 	}
 
 	async function handleScrollToBottom() {
@@ -149,12 +137,6 @@
 		Powered by SvelteKit + Rust through WebAssembly for fast and secured loudness measurement 🎚️
 	</p>
 {/if}
-
-<!-- <script src="aurora.js"></script>
-	<script src="flac.js"></script>
-	<script src="alac.js"></script>
-	<script src="aac.js"></script>
-	<script src="mp3.js"></script> -->
 
 <style>
 	.analyzers-container > div {

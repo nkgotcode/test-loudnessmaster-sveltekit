@@ -3,7 +3,7 @@
 	export let worker;
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import { process } from './store.js';
+	import { process, processingType } from './store.js';
 	import { backInOut } from 'svelte/easing';
 	let dragover = true;
 	let dropzone;
@@ -13,18 +13,6 @@
 	let url = '';
 	const dispatch = createEventDispatcher();
 	async function extractAudioInfo(file, objectURL) {
-		// const asset = AV.Asset.fromFile(file);
-		// let format = await new Promise((resolve) => asset.get("format", resolve));
-		// const sampleRate = format.sampleRate;
-		// const formatID = format.formatID;
-		// const numberOfChannels = format.channelsPerFrame;
-		// if (numberOfChannels > 2) {
-		//   throw new Error(
-		//     "Only mono or stereo audio files are supported currently for Integrated Loudness measurement."
-		//   );
-		// }
-		// const bitrate = format.bitsPerChannel;
-		// console.log(file.type, formatID, sampleRate, numberOfChannels, bitrate);
 		try {
 			const tmpContext = new (window.AudioContext || window.webkitAudioContext)();
 			const response = await fetch(objectURL);
@@ -44,14 +32,6 @@
 					reject
 				);
 			});
-			//   const audioContext = new OfflineAudioContext(
-			//     data.numberOfChannels,
-			//     data.sampleLength,
-			//     data.sampleRate
-			//   );
-			//   console.log(audioContext);
-
-			//   const decodedSamplesBuffer = await audioContext.decodeAudioData(buffer);
 			return new AudioData(decoded, data.sampleRate);
 		} catch (error) {
 			process.set(false);
@@ -85,28 +65,47 @@
 		// // Ensure there's at least one file dropped
 		if (event.dataTransfer.items && event.dataTransfer.items.length > 0) {
 			const file = event.dataTransfer.items[0].getAsFile();
-			if (file.type !== 'audio/wav') {
-				alert('Please upload a .wav file');
-				event.target.value = '';
-				throw new Error('Please upload a .wav file');
-			} else {
-				process.set(true);
-				fileName = file.name;
-				console.log('fileName after file drop:', fileName);
-				const objectURL = URL.createObjectURL(file);
-				try {
-					const audioData = await extractAudioInfo(file, objectURL);
-					const channelsData = await extractAudioData(audioData.samplesBuf);
-					startTime = Date.now();
+			process.set(true);
+			fileName = file.name;
+			console.log('fileName after file drop:', fileName);
+			const objectURL = URL.createObjectURL(file);
+			try {
+				const audioData = await extractAudioInfo(file, objectURL);
+				const channelsData = await extractAudioData(audioData.samplesBuf);
+				startTime = Date.now();
+				if ($processingType === 'Online') {
+					const formData = new FormData();
+					formData.append('audioData', new Blob([channelsData], { type: 'audio/wav' }));
+					formData.append('sampleRate', audioData.sampleRate);
+
+					fetch('/api/serverless', {
+						method: 'POST',
+						body: formData
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							// Handle the response data
+							console.log('Online processing result:', data);
+							worker.postMessage({
+								type: 'loudnessResult',
+								value: data
+							});
+						})
+						.catch((error) => {
+							process.set(false);
+							console.error('Error in online processing:', error.message);
+						});
+				} else {
 					worker.postMessage({
 						action: 'processAudio',
 						buffer: channelsData,
 						sampleRate: audioData.sampleRate
 					});
-					url = objectURL;
-				} catch (error) {
-					alert(error.message);
 				}
+				url = objectURL;
+			} catch (error) {
+				process.set(false);
+				alert(error.message);
 			}
 		}
 	}
@@ -123,28 +122,47 @@
 	async function handleFileUpload(event) {
 		const file = event.target.files[0];
 		if (file) {
-			if (file.type !== 'audio/wav') {
-				alert('Please upload a .wav file');
-				event.target.value = '';
-				throw new Error('Please upload a .wav file');
-			} else {
-				process.set(true);
-				fileName = file.name;
-				console.log('fileName after file upload:', fileName);
-				const objectURL = URL.createObjectURL(file);
-				try {
-					const audioData = await extractAudioInfo(file, objectURL);
-					const channelsData = await extractAudioData(audioData.samplesBuf);
-					startTime = Date.now();
+			process.set(true);
+			fileName = file.name;
+			console.log('fileName after file upload:', fileName);
+			const objectURL = URL.createObjectURL(file);
+			try {
+				const audioData = await extractAudioInfo(file, objectURL);
+				const channelsData = await extractAudioData(audioData.samplesBuf);
+				startTime = Date.now();
+				if ($processingType === 'Online') {
+					const formData = new FormData();
+					formData.append('audioData', new Blob([channelsData], { type: 'audio/wav' }));
+					formData.append('sampleRate', audioData.sampleRate);
+
+					fetch('/api/serverless', {
+						method: 'POST',
+						body: formData
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							// Handle the response data
+							console.log('Online processing result:', data);
+							worker.postMessage({
+								type: 'loudnessResult',
+								value: data
+							});
+						})
+						.catch((error) => {
+							process.set(false);
+							console.error('Error in online processing:', error.message);
+						});
+				} else {
 					worker.postMessage({
 						action: 'processAudio',
 						buffer: channelsData,
 						sampleRate: audioData.sampleRate
 					});
-					url = objectURL;
-				} catch (error) {
-					alert(error.message);
 				}
+				url = objectURL;
+			} catch (error) {
+				process.set(false);
+				alert(error.message);
 			}
 		}
 	}
