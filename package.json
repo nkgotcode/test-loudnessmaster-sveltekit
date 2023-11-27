@@ -32,6 +32,7 @@
 	"dependencies": {
 		"@fontsource/noto-sans-osmanya": "^5.0.8",
 		"@sentry/sveltekit": "^7.75.0",
+		"@vercel/blob": "^0.15.1",
 		"svelte-dnd-action": "^0.9.31",
 		"vercel": "^32.5.6"
 	}

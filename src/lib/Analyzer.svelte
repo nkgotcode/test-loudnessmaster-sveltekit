@@ -5,6 +5,7 @@
 	import { fade } from 'svelte/transition';
 	import { process, processingType } from './store.js';
 	import { backInOut } from 'svelte/easing';
+	import { upload } from '@vercel/blob/client';
 	let dragover = true;
 	let dropzone;
 	let audioFileInput;
@@ -12,6 +13,46 @@
 	let fileName = '';
 	let url = '';
 	const dispatch = createEventDispatcher();
+
+	// Function to call your serverless endpoint with the URL of the uploaded file
+	async function callServerlessFunction(fileUrl) {
+		try {
+			const response = await fetch('/api/serverless', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ fileUrl })
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+
+			return await response.json(); // Process the response from your serverless function
+		} catch (error) {
+			console.error('Error in calling serverless function:', error);
+		}
+	}
+
+	async function uploadToVercelStorage(file) {
+		try {
+			// Define the pathname for the file in the storage
+			// This can be a unique identifier or a path structure
+			const pathname = '/uploads/' + file.name; // Example pathname
+
+			// Perform the upload using the Blob library
+			const { url } = await upload(pathname, file);
+
+			// url is the URL of the uploaded file
+			console.log(`File uploaded to: ${url}`);
+			return url;
+		} catch (error) {
+			console.error('Error uploading file:', error);
+			throw error;
+		}
+	}
+
 	async function extractAudioInfo(file, objectURL) {
 		try {
 			const tmpContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -75,26 +116,7 @@
 				startTime = Date.now();
 				if ($processingType === 'Online') {
 					const formData = new FormData();
-					formData.append('audioData', new Blob([channelsData], { type: 'audio/wav' }));
-					formData.append('sampleRate', audioData.sampleRate);
-
-					fetch('/api/serverless', {
-						method: 'POST',
-						body: formData
-					})
-						.then((response) => response.json())
-						.then((data) => {
-							// Handle the response data
-							console.log('Online processing result:', data);
-							worker.postMessage({
-								type: 'loudnessResult',
-								value: data
-							});
-						})
-						.catch((error) => {
-							process.set(false);
-							console.error('Error in online processing:', error.message);
-						});
+					const fileUrl = await uploadToVercelStorage(file);
 				} else {
 					worker.postMessage({
 						action: 'processAudio',
@@ -131,27 +153,15 @@
 				const channelsData = await extractAudioData(audioData.samplesBuf);
 				startTime = Date.now();
 				if ($processingType === 'Online') {
-					const formData = new FormData();
-					formData.append('audioData', new Blob([channelsData], { type: 'audio/wav' }));
-					formData.append('sampleRate', audioData.sampleRate);
+					const fileUrl = await uploadToVercelStorage(file);
 
-					fetch('/api/serverless', {
-						method: 'POST',
-						body: formData
-					})
-						.then((response) => response.json())
-						.then((data) => {
-							// Handle the response data
-							console.log('Online processing result:', data);
-							worker.postMessage({
-								type: 'loudnessResult',
-								value: data
-							});
-						})
-						.catch((error) => {
-							process.set(false);
-							console.error('Error in online processing:', error.message);
-						});
+					// Handle the uploaded file URL as needed
+					console.log(`Uploaded file URL: ${fileUrl}`);
+
+					const processingResult = await callServerlessFunction(fileUrl);
+					// Handle the processing result here
+					worker.postMessage({ action: 'loudnessResult' });
+					console.log('Processing result:', processingResult);
 				} else {
 					worker.postMessage({
 						action: 'processAudio',
