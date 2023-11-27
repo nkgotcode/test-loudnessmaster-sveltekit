@@ -14,6 +14,25 @@
 	let url = '';
 	const dispatch = createEventDispatcher();
 
+	async function getSignedUploadUrl(file) {
+		const response = await fetch('/api/get-upload-url', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				filename: file.name,
+				contentType: file.type
+			})
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		return await response.json();
+	}
+
 	// Function to call your serverless endpoint with the URL of the uploaded file
 	async function callServerlessFunction(fileUrl) {
 		try {
@@ -37,16 +56,23 @@
 
 	async function uploadToVercelStorage(file) {
 		try {
-			// Define the pathname for the file in the storage
-			// This can be a unique identifier or a path structure
-			const pathname = '/uploads/' + file.name; // Example pathname
+			const { signedUrl } = await getSignedUploadUrl(file);
 
-			// Perform the upload using the Blob library
-			const { url } = await upload(pathname, file, { access: 'public' });
+			const formData = new FormData();
+			formData.append('file', file);
 
-			// url is the URL of the uploaded file
-			console.log(`File uploaded to: ${url}`);
-			return url;
+			const uploadResponse = await fetch(signedUrl, {
+				method: 'PUT', // The method might be 'PUT' or 'POST' depending on the signed URL
+				body: file // Directly send the file as the body
+			});
+
+			if (!uploadResponse.ok) {
+				throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
+			}
+
+			// Assuming the signed URL is the URL of the uploaded file
+			console.log(`File uploaded to: ${signedUrl}`);
+			return signedUrl;
 		} catch (error) {
 			console.error('Error uploading file:', error);
 			throw error;
