@@ -1,6 +1,7 @@
+import type { RequestHandler } from '@sveltejs/kit';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 
-export async function post({ request }) {
+export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
 
 	try {
@@ -33,4 +34,4 @@ export async function post({ request }) {
 			{ status: 400 } // The webhook will retry 5 times waiting for a 200
 		);
 	}
-}
+};
