@@ -42,7 +42,7 @@
 			const pathname = '/uploads/' + file.name; // Example pathname
 
 			// Perform the upload using the Blob library
-			const { url } = await upload(pathname, file);
+			const { url } = await upload(pathname, file, { access: 'public' });
 
 			// url is the URL of the uploaded file
 			console.log(`File uploaded to: ${url}`);
@@ -115,7 +115,6 @@
 				const channelsData = await extractAudioData(audioData.samplesBuf);
 				startTime = Date.now();
 				if ($processingType === 'Online') {
-					const formData = new FormData();
 					const fileUrl = await uploadToVercelStorage(file);
 				} else {
 					worker.postMessage({
