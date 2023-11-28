@@ -22,8 +22,7 @@
 			},
 			body: JSON.stringify({
 				filename: file.name,
-				contentType: file.type,
-				file: file
+				contentType: file.type
 			})
 		});
 
