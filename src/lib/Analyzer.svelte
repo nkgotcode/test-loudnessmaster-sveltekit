@@ -95,6 +95,10 @@
 						result: result, // Use the result here
 						url: url
 					});
+					process.set(false);
+					const processingTime = Date.now() - startTime;
+					console.log(`Processing time: ${processingTime} ms`);
+					console.log('Integrated Loudness:', event.data.value);
 				} else {
 					const channelsData = await extractAudioData(audioData.samplesBuf);
 					worker.postMessage({
@@ -128,6 +132,7 @@
 			console.log('fileName after file upload:', fileName);
 			const objectURL = URL.createObjectURL(file);
 			try {
+				startTime = Date.now();
 				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
@@ -151,6 +156,10 @@
 						result: result, // Use the result here
 						url: url
 					});
+					process.set(false);
+					const processingTime = Date.now() - startTime;
+					console.log(`Processing time: ${processingTime} ms`);
+					console.log('Integrated Loudness:', event.data.value);
 				} else {
 					const channelsData = await extractAudioData(audioData?.samplesBuf);
 					worker.postMessage({
