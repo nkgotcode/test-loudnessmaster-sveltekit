@@ -3,15 +3,25 @@
 	import Switch from './Switch.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { quadIn, quadOut, sineInOut } from 'svelte/easing';
-	import { processingType } from './store';
+	import { processingType, dontShowAgain } from './store';
+	import Disclaimer from './Disclaimer.svelte';
 	let lastScrollTop = 0;
 	let navBar;
 	let multiValue = 'Offline';
+	let showDisclaimer = false;
 
 	$: if (multiValue === 'Online') {
-		processingType.set('Online');
+		$dontShowAgain ? processingType.set('Online') : (showDisclaimer = true);
 	} else {
 		processingType.set('Offline');
+		showDisclaimer = false;
+	}
+
+	function handleDisclaimerClose() {
+		showDisclaimer = false;
+		if (!$dontShowAgain) {
+			processingType.set('Online');
+		}
 	}
 
 	onMount(() => {
@@ -61,6 +71,8 @@
 		</p> -->
 	</div>
 </div>
+
+<Disclaimer showModal={showDisclaimer} onClose={handleDisclaimerClose} />
 
 <style>
 	.navBar {
