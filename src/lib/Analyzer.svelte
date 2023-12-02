@@ -72,13 +72,16 @@
 			const objectURL = URL.createObjectURL(file);
 			try {
 				startTime = Date.now();
+				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
 					formData.append('file', file);
+					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
 						body: formData
 					});
+
 					if (!response.ok) {
 						throw new Error(`HTTP error! status: ${response.status}`);
 					}
@@ -93,7 +96,6 @@
 						url: url
 					});
 				} else {
-					const audioData = await extractAudioInfo(file, objectURL);
 					const channelsData = await extractAudioData(audioData.samplesBuf);
 					worker.postMessage({
 						action: 'processAudio',
@@ -126,14 +128,16 @@
 			console.log('fileName after file upload:', fileName);
 			const objectURL = URL.createObjectURL(file);
 			try {
-				startTime = Date.now();
+				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
 					formData.append('file', file);
+					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
 						body: formData
 					});
+
 					if (!response.ok) {
 						throw new Error(`HTTP error! status: ${response.status}`);
 					}
@@ -148,7 +152,6 @@
 						url: url
 					});
 				} else {
-					const audioData = await extractAudioInfo(file, objectURL);
 					const channelsData = await extractAudioData(audioData?.samplesBuf);
 					worker.postMessage({
 						action: 'processAudio',
