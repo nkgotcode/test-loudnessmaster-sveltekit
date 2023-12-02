@@ -5,7 +5,6 @@
 	import { fade } from 'svelte/transition';
 	import { process, processingType } from './store.js';
 	import { backInOut } from 'svelte/easing';
-	import { upload } from '@vercel/blob/client';
 	let dragover = true;
 	let dropzone;
 	let audioFileInput;
@@ -13,64 +12,6 @@
 	let fileName = '';
 	let url = '';
 	const dispatch = createEventDispatcher();
-
-	async function getSignedUploadUrl(file) {
-		try {
-			const response = await fetch(`/api/generate-upload?filename=${file.name}`, {
-				method: 'POST',
-				body: file
-			});
-			return response.url;
-		} catch (error) {
-			process.set(false);
-			console.error(error);
-		}
-	}
-
-	// Function to call your serverless endpoint with the URL of the uploaded file
-	async function callServerlessFunction(fileUrl) {
-		try {
-			const response = await fetch('/api/serverless', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ fileUrl })
-			});
-
-			console.log(response);
-
-			return await response.json(); // Process the response from your serverless function
-		} catch (error) {
-			process.set(false);
-			console.error(error);
-		}
-	}
-
-	async function uploadToVercelStorage(file) {
-		try {
-			const signedUrl = await getSignedUploadUrl(file);
-			console.log(signedUrl);
-			const formData = new FormData();
-			formData.append('file', file);
-
-			const uploadResponse = await fetch(signedUrl, {
-				method: 'POST',
-				body: file // Directly send the file as the body
-			});
-
-			if (!uploadResponse.ok) {
-				throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
-			}
-			console.log(uploadResponse);
-			// Assuming the signed URL is the URL of the uploaded file
-			console.log(`File uploaded to: ${uploadResponse.url}`);
-			return uploadResponse.url;
-		} catch (error) {
-			console.error('Error uploading file:', error);
-			throw error;
-		}
-	}
 
 	async function extractAudioInfo(file, objectURL) {
 		try {
@@ -139,7 +80,10 @@
 					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
-						body: formData
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ audio: channelsData, sample_rate: audioData?.sampleRate })
 					});
 
 					console.log(response);
@@ -187,7 +131,10 @@
 					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
-						body: formData
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ audio: channelsData, sample_rate: audioData?.sampleRate })
 					});
 
 					console.log(response);
