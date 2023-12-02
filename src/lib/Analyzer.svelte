@@ -72,21 +72,28 @@
 			const objectURL = URL.createObjectURL(file);
 			try {
 				startTime = Date.now();
-				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
 					formData.append('file', file);
-					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
 						body: formData
 					});
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+					}
 
-					console.log(response);
-					// Handle the processing result here
-					worker.postMessage({ action: 'loudnessResult' });
-					console.log('Processing result:', processingResult);
+					const result = await response.json(); // Parse the JSON response
+					console.log('Processing result:', result);
+
+					// Dispatch or handle the processing result
+					dispatch('analyzerFinished', {
+						fileName: fileName,
+						result: result, // Use the result here
+						url: url
+					});
 				} else {
+					const audioData = await extractAudioInfo(file, objectURL);
 					const channelsData = await extractAudioData(audioData.samplesBuf);
 					worker.postMessage({
 						action: 'processAudio',
@@ -120,21 +127,28 @@
 			const objectURL = URL.createObjectURL(file);
 			try {
 				startTime = Date.now();
-				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
 					formData.append('file', file);
-					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
 						body: formData
 					});
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+					}
 
-					console.log(response);
-					// Handle the processing result here
-					worker.postMessage({ action: 'loudnessResult' });
-					console.log('Processing result:', processingResult);
+					const result = await response.json(); // Parse the JSON response
+					console.log('Processing result:', result);
+
+					// Dispatch or handle the processing result
+					dispatch('analyzerFinished', {
+						fileName: fileName,
+						result: result, // Use the result here
+						url: url
+					});
 				} else {
+					const audioData = await extractAudioInfo(file, objectURL);
 					const channelsData = await extractAudioData(audioData?.samplesBuf);
 					worker.postMessage({
 						action: 'processAudio',
