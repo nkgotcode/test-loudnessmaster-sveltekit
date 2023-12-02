@@ -88,17 +88,10 @@
 
 					const result = await response.json(); // Parse the JSON response
 					console.log('Processing result:', result);
-
-					// Dispatch or handle the processing result
-					dispatch('analyzerFinished', {
-						fileName: fileName,
-						result: result, // Use the result here
-						url: url
+					worker.postMessage({
+						type: 'loudnessResult',
+						value: result
 					});
-					process.set(false);
-					const processingTime = Date.now() - startTime;
-					console.log(`Processing time: ${processingTime} ms`);
-					console.log('Integrated Loudness:', event.data.value);
 				} else {
 					const channelsData = await extractAudioData(audioData.samplesBuf);
 					worker.postMessage({
@@ -150,16 +143,10 @@
 					const result = await response.json(); // Parse the JSON response
 					console.log('Processing result:', result);
 
-					// Dispatch or handle the processing result
-					dispatch('analyzerFinished', {
-						fileName: fileName,
-						result: result, // Use the result here
-						url: url
+					worker.postMessage({
+						type: 'loudnessResult',
+						value: result
 					});
-					process.set(false);
-					const processingTime = Date.now() - startTime;
-					console.log(`Processing time: ${processingTime} ms`);
-					console.log('Integrated Loudness:', event.data.value);
 				} else {
 					const channelsData = await extractAudioData(audioData?.samplesBuf);
 					worker.postMessage({
