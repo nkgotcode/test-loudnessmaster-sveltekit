@@ -71,19 +71,15 @@
 			console.log('fileName after file drop:', fileName);
 			const objectURL = URL.createObjectURL(file);
 			try {
-				const audioData = await extractAudioInfo(file, objectURL);
-				const channelsData = await extractAudioData(audioData.samplesBuf);
 				startTime = Date.now();
+				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
 					formData.append('file', file);
 					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({ audio: channelsData, sample_rate: audioData?.sampleRate })
+						body: formData
 					});
 
 					console.log(response);
@@ -91,6 +87,7 @@
 					worker.postMessage({ action: 'loudnessResult' });
 					console.log('Processing result:', processingResult);
 				} else {
+					const channelsData = await extractAudioData(audioData.samplesBuf);
 					worker.postMessage({
 						action: 'processAudio',
 						buffer: channelsData,
@@ -122,19 +119,15 @@
 			console.log('fileName after file upload:', fileName);
 			const objectURL = URL.createObjectURL(file);
 			try {
-				const audioData = await extractAudioInfo(file, objectURL);
-				const channelsData = await extractAudioData(audioData?.samplesBuf);
 				startTime = Date.now();
+				const audioData = await extractAudioInfo(file, objectURL);
 				if ($processingType === 'Online') {
 					const formData = new FormData();
 					formData.append('file', file);
 					formData.append('sample_rate', audioData?.sampleRate);
 					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({ audio: channelsData, sample_rate: audioData?.sampleRate })
+						body: formData
 					});
 
 					console.log(response);
@@ -142,6 +135,7 @@
 					worker.postMessage({ action: 'loudnessResult' });
 					console.log('Processing result:', processingResult);
 				} else {
+					const channelsData = await extractAudioData(audioData?.samplesBuf);
 					worker.postMessage({
 						action: 'processAudio',
 						buffer: channelsData,
