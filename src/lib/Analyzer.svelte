@@ -134,7 +134,18 @@
 				const channelsData = await extractAudioData(audioData.samplesBuf);
 				startTime = Date.now();
 				if ($processingType === 'Online') {
-					const fileUrl = await uploadToVercelStorage(file);
+					const formData = new FormData();
+					formData.append('file', file);
+					formData.append('sample_rate', audioData?.sampleRate);
+					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
+						method: 'POST',
+						body: formData
+					});
+
+					console.log(response);
+					// Handle the processing result here
+					worker.postMessage({ action: 'loudnessResult' });
+					console.log('Processing result:', processingResult);
 				} else {
 					worker.postMessage({
 						action: 'processAudio',
@@ -171,12 +182,10 @@
 				const channelsData = await extractAudioData(audioData?.samplesBuf);
 				startTime = Date.now();
 				if ($processingType === 'Online') {
-					// const fileUrl = await uploadToVercelStorage(file);
-					// const processingResult = await callServerlessFunction(fileUrl);
 					const formData = new FormData();
 					formData.append('file', file);
 					formData.append('sample_rate', audioData?.sampleRate);
-					const response = await fetch('https://test-rocket-2.onrender.com/upload-audio', {
+					const response = await fetch('https://test-rocket-2.onrender.com/upload', {
 						method: 'POST',
 						body: formData
 					});
