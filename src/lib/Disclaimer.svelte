@@ -17,7 +17,8 @@
 			<p>
 				Disclaimer: Online processing will send your data to our servers, but will not store your
 				audio. Currently only support 16 and 32 bit WAV file for online processing. For accurate 24
-				bit audio measurement, please use offline processing.
+				bit audio measurement, please use offline processing. In general, offline will give better
+				performance and more stable results than online.
 			</p>
 			<label>
 				<input type="checkbox" bind:checked={localDontShowAgain} />
