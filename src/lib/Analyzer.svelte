@@ -15,22 +15,16 @@
 	const dispatch = createEventDispatcher();
 
 	async function getSignedUploadUrl(file) {
-		const response = await fetch('/api/get-upload-url', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				filename: file.name,
-				contentType: file.type
-			})
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP error! Status: ${response.status}`);
+		try {
+			const response = await fetch(`/api/generate-upload?filename=${file.name}`, {
+				method: 'POST',
+				body: file
+			});
+			return response.url;
+		} catch (error) {
+			process.set(false);
+			console.error(error);
 		}
-
-		return await response.json();
 	}
 
 	// Function to call your serverless endpoint with the URL of the uploaded file
@@ -44,35 +38,34 @@
 				body: JSON.stringify({ fileUrl })
 			});
 
-			if (!response.ok) {
-				throw new Error(`HTTP error! Status: ${response.status}`);
-			}
+			console.log(response);
 
 			return await response.json(); // Process the response from your serverless function
 		} catch (error) {
-			console.error('Error in calling serverless function:', error);
+			process.set(false);
+			console.error(error);
 		}
 	}
 
 	async function uploadToVercelStorage(file) {
 		try {
-			const { signedUrl } = await getSignedUploadUrl(file);
-
+			const signedUrl = await getSignedUploadUrl(file);
+			console.log(signedUrl);
 			const formData = new FormData();
 			formData.append('file', file);
 
 			const uploadResponse = await fetch(signedUrl, {
-				method: 'PUT', // The method might be 'PUT' or 'POST' depending on the signed URL
+				method: 'POST',
 				body: file // Directly send the file as the body
 			});
 
 			if (!uploadResponse.ok) {
 				throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
 			}
-
+			console.log(uploadResponse);
 			// Assuming the signed URL is the URL of the uploaded file
-			console.log(`File uploaded to: ${signedUrl}`);
-			return signedUrl;
+			console.log(`File uploaded to: ${uploadResponse.url}`);
+			return uploadResponse.url;
 		} catch (error) {
 			console.error('Error uploading file:', error);
 			throw error;
@@ -175,15 +168,20 @@
 			const objectURL = URL.createObjectURL(file);
 			try {
 				const audioData = await extractAudioInfo(file, objectURL);
-				const channelsData = await extractAudioData(audioData.samplesBuf);
+				const channelsData = await extractAudioData(audioData?.samplesBuf);
 				startTime = Date.now();
 				if ($processingType === 'Online') {
-					const fileUrl = await uploadToVercelStorage(file);
+					// const fileUrl = await uploadToVercelStorage(file);
+					// const processingResult = await callServerlessFunction(fileUrl);
+					const formData = new FormData();
+					formData.append('file', file);
+					formData.append('sample_rate', audioData?.sampleRate);
+					const response = await fetch('https://test-rocket-2.onrender.com/upload-audio', {
+						method: 'POST',
+						body: formData
+					});
 
-					// Handle the uploaded file URL as needed
-					console.log(`Uploaded file URL: ${fileUrl}`);
-
-					const processingResult = await callServerlessFunction(fileUrl);
+					console.log(response);
 					// Handle the processing result here
 					worker.postMessage({ action: 'loudnessResult' });
 					console.log('Processing result:', processingResult);
