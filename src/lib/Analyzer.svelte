@@ -92,6 +92,14 @@
 						type: 'loudnessResult',
 						value: result
 					});
+					dispatch('analyzerFinished', {
+						fileName: fileName,
+						result: result,
+						url: url
+					});
+					process.set(false);
+					const processingTime = Date.now() - startTime;
+					console.log(`Processing time: ${processingTime} ms`);
 				} else {
 					const channelsData = await extractAudioData(audioData.samplesBuf);
 					worker.postMessage({
@@ -147,6 +155,14 @@
 						type: 'loudnessResult',
 						value: result
 					});
+					dispatch('analyzerFinished', {
+						fileName: fileName,
+						result: result,
+						url: url
+					});
+					process.set(false);
+					const processingTime = Date.now() - startTime;
+					console.log(`Processing time: ${processingTime} ms`);
 				} else {
 					const channelsData = await extractAudioData(audioData?.samplesBuf);
 					worker.postMessage({
